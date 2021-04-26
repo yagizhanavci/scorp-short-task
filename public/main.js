@@ -19,12 +19,21 @@ let eventQueue = [];
 
 // Animation Queue
 let animationQueue = [];
+``;
 
-const api = new APIWrapper(5, true, true);
+// Option to order all events or order current events
+const orderAllEvents = true;
+
+const api = new APIWrapper(10, false, true);
 
 api.setEventHandler((events) => {
   // Order events according to priorty order
-  const orderedEvents = orderEvents(events);
+  let orderedEvents;
+  if (orderAllEvents) {
+    orderedEvents = orderEvents([...eventQueue, ...events]);
+  } else {
+    orderedEvents = orderEvents(events);
+  }
 
   // Remove duplicate events
   const uniqueEvents = removeDuplicateEvents([...eventQueue, ...orderedEvents]);
@@ -69,7 +78,7 @@ function findValidEvent() {
 
     // If currentEvent is not message nor animated gift return it immediately,if not then currentEvent is a message, check timestamp of the message, if it is valid return it, if not then get next valid event
     else if (
-      currentEvent.type !== API_EVENT_TYPE.MESSAGE ||
+      currentEvent.type === API_EVENT_TYPE.GIFT ||
       (currentEvent.type === API_EVENT_TYPE.MESSAGE &&
         Date.now() - currentEvent.timestamp.getTime() < 20000)
     ) {
@@ -103,14 +112,9 @@ function showEvent(event) {
       animateGift(event);
       addMessage(event);
       break;
-    case API_EVENT_TYPE.MESSAGE:
-      addMessage(event);
-      break;
-    case API_EVENT_TYPE.GIFT:
-      addMessage(event);
-      break;
     default:
       addMessage(event);
+      break;
   }
 }
 
